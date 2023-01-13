@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MediaPlayerApp"
+        x:Name="WindowMain"
         mc:Ignorable="d"
         Loaded="Window_Loaded"
         Title="MainWindow" Height="600" Width="800">
@@ -46,6 +47,7 @@
 
         <MediaElement x:Name="MainMediaPlayer"
                       Source="Media/Ed Sheeran - Perfect.mp4"
+                      MediaOpened="MainMediaPlayer_MediaOpened"
                       LoadedBehavior="Manual"
                       d:LoadedBehavior="Pause"
                       UnloadedBehavior="Manual"
@@ -55,7 +57,35 @@
         <StackPanel Grid.Row="1"
                     Orientation="Vertical"
                     HorizontalAlignment="Center">
-            <ProgressBar Width="700" Height="10" />
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="TextblockCurrentTimestamp"
+                           Text="00:00:00" />
+                <Slider x:Name="SeekBar"
+                        Thumb.DragStarted="SeekBar_DragStarted"
+                        Thumb.DragCompleted="SeekBar_DragCompleted"
+                        ValueChanged="SeekBar_ValueChanged"
+                        Margin="10 0 10 0"
+                        Width="600" Height="20" />
+                <TextBlock x:Name="TextblockVideoLength">
+                    <Run Text="{Binding StringFormat={}{0:00},
+                                ElementName=WindowMain,
+                                Path=MediaTimeSpan.Hours,
+                                Mode=OneWay}"
+                         d:Text="01" /><!--
+                 -->:<!--
+                 --><Run Text="{Binding StringFormat={}{0:00},
+                                ElementName=WindowMain,
+                                Path=MediaTimeSpan.Minutes,
+                                Mode=OneWay}"
+                         d:Text="05" /><!--
+                 -->:<!--
+                 --><Run Text="{Binding StringFormat={}{0:00},
+                                ElementName=WindowMain,
+                                Path=MediaTimeSpan.Seconds,
+                                Mode=OneWay}"
+                         d:Text="49" />
+                </TextBlock>
+            </StackPanel>
             <StackPanel Orientation="Horizontal"
                         Margin="0 20 0 0"
                         HorizontalAlignment="Center">

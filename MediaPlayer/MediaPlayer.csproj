@@ -17,4 +17,12 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Converters\" />
+  </ItemGroup>
+
 </Project>
