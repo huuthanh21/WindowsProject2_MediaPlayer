@@ -144,6 +144,19 @@
                           x:Name="ButtonExit"
                           Click="ButtonExit_Click" />
             </MenuItem>
+
+            <MenuItem Header="_Queue">
+                <MenuItem.ItemContainerStyle>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="BorderThickness" Value="0.1" />
+                        <Setter Property="Foreground" Value="Black" />
+                    </Style>
+                </MenuItem.ItemContainerStyle>
+
+                <MenuItem Header="_Add"
+                          x:Name="ButtoAddToQueue"
+                          Click="ButtoAddToQueue_Click" />
+            </MenuItem>
         </Menu>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -167,6 +180,20 @@
                       Visibility="Collapsed"
                       d:Visibility="Visible"
                       d:ItemsSource="{d:SampleData ItemCount=5}">
+                <ListView.Resources>
+                    <ContextMenu x:Key="ItemContextMenu">
+                        <MenuItem x:Name="ButtonRemoveItem"
+                                  Header="Remove"
+                                  Click="ButtonRemoveItem_Click" />
+                    </ContextMenu>
+                </ListView.Resources>
+
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListViewItem}">
+                        <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+
                 <ListView.View>
                     <GridView ColumnHeaderToolTip="Queue">
                         <GridViewColumn DisplayMemberBinding="{Binding Converter={StaticResource PathToFileNameConverter}}"
@@ -184,7 +211,7 @@
                         HorizontalAlignment="Center"
                         Margin="10 10 10 0">
                 <TextBlock x:Name="TextblockCurrentTimestamp"
-                           Text="00:00:00"
+                           Text="--:--:--"
                            Focusable="False" />
                 <Slider x:Name="SeekBar"
                         IsMoveToPointEnabled="True"
