@@ -121,9 +121,8 @@
             <MenuItem Header="_File">
                 <MenuItem.ItemContainerStyle>
                     <Style TargetType="MenuItem">
-                        <Setter Property="Background" Value="Black" />
-                        <Setter Property="Foreground" Value="LightGray" />
                         <Setter Property="BorderThickness" Value="0.1" />
+                        <Setter Property="Foreground" Value="Black" />
                     </Style>
                 </MenuItem.ItemContainerStyle>
 
@@ -138,6 +137,9 @@
                           Click="ButtonOpenFolder_Click" />
                 <MenuItem Header="_Open Playlist"
                           x:Name="ButtonOpenPlaylist" />
+                <MenuItem Header="_Save Playlist"
+                          x:Name="ButtonSavePlaylist"
+                          Click="ButtonSavePlaylist_Click" />
                 <MenuItem Header="_Exit"
                           x:Name="ButtonExit"
                           Click="ButtonExit_Click" />

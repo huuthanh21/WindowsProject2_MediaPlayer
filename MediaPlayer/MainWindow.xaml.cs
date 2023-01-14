@@ -1,11 +1,14 @@
-﻿using Microsoft.Win32;
+﻿using MediaPlayer.Views;
+using Microsoft.Win32;
 using Ookii.Dialogs.Wpf;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 
@@ -28,10 +31,16 @@ namespace MediaPlayerApp
             QueueMedia.ItemsSource = _currentPlaylist;
         }
 
+#pragma warning disable 67
+
         public event PropertyChangedEventHandler PropertyChanged;
+
+#pragma warning restore 67
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            LoadPlaylists();
+
             this.KeyDown += MainWindow_KeyDown;
             // Update MediaState when media ended on its own
             MainMediaPlayer.MediaEnded += (sender, eventArgs) =>
@@ -156,6 +165,35 @@ namespace MediaPlayerApp
             MediaTimeSpan = MainMediaPlayer.NaturalDuration.TimeSpan;
 
             SeekBar.Maximum = MainMediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+        }
+
+        private void LoadPlaylists()
+        {
+            // Get all playlists in Playlists folder
+            DirectoryInfo directory = new(Path.Combine(Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName,
+                                            "Playlists"));
+            var playlists = directory.GetFiles("*.txt");
+
+            foreach (var playlistItem in playlists)
+            {
+                var newMenuItem = new MenuItem
+                {
+                    Header = Path.GetFileNameWithoutExtension(playlistItem.Name)
+                };
+
+                newMenuItem.Click += (s, e) =>
+                {
+                    _currentPlaylist.Clear();
+
+                    string[] paths = File.ReadAllLines(playlistItem.FullName);
+                    foreach (string path in paths)
+                    {
+                        _currentPlaylist.Add(path);
+                    }
+                };
+
+                ButtonOpenPlaylist.Items.Add(newMenuItem);
+            }
         }
 
         private void SeekBar_DragStarted(object sender, System.Windows.Controls.Primitives.DragStartedEventArgs e)
@@ -319,6 +357,21 @@ namespace MediaPlayerApp
             if (file is not null)
             {
                 PlayPath(file);
+            }
+        }
+
+        private void ButtonSavePlaylist_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new SavePlaylistDialog();
+            dialog.ShowDialog();
+            if (dialog.DialogResult == true)
+            {
+                var playlistPath = dialog.PlaylistPath;
+                using StreamWriter writer = File.CreateText(playlistPath);
+                foreach (var path in _currentPlaylist)
+                {
+                    writer.WriteLine(path);
+                }
             }
         }
     }

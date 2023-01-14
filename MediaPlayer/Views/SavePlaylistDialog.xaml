@@ -1,0 +1,56 @@
+﻿<Window x:Class="MediaPlayer.Views.SavePlaylistDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MediaPlayer.Views"
+        mc:Ignorable="d"
+        ContentRendered="Window_ContentRendered"
+        Title="Save Playlist" Height="194" Width="431">
+    <Window.Resources>
+        <ResourceDictionary>
+            <DrawingImage x:Key="icon_question">
+                <DrawingImage.Drawing>
+                    <DrawingGroup ClipGeometry="M0,0 V59 H39 V0 H0 Z">
+                        <GeometryDrawing Brush="#FFB3E844" Geometry="F1 M39,59z M0,0z M1.50427,14.7408L1.43894,15.2373 1.93554,15.3018 9.05205,16.227 9.53352,16.2896 9.61023,15.8102C9.88801,14.074 10.4328,12.4178 11.6762,11.1743 12.9243,9.92616 14.9272,8.61651 19.5778,8.61651 24.1972,8.61651 26.6232,9.7358 27.9254,10.9078 29.2273,12.0795 29.7525,13.5013 29.7525,15.233 29.7525,18.1096 29.1658,19.8912 28.1849,21.3294 27.3284,22.5851 26.1647,23.5977 24.718,24.8566 24.4685,25.0737 24.2106,25.2981 23.9443,25.5324 20.3649,28.6823 15.5195,33.3649 15.5195,41.9199L15.5195,43.699 15.5195,44.199 16.0195,44.199 23.136,44.199 23.636,44.199 23.636,43.699 23.636,41.9199C23.636,39.0345 24.1733,37.2505 25.1036,35.8135 25.9649,34.483 27.1756,33.422 28.7398,32.0513 28.8997,31.9111 29.0634,31.7678 29.2307,31.6205 32.7995,28.4799 37.869,23.7952 37.869,15.233 37.869,11.7081 36.6215,7.72108 33.5105,4.83234L33.5105,4.83232 33.5062,4.82838C30.3214,1.93981 25.6271,0.5 19.5778,0.5 13.4275,0.5 8.8056,2.38292 5.84518,5.34334 2.88994,8.29858 1.86749,11.9803 1.50427,14.7408z M16.0195,50.3155L15.5195,50.3155 15.5195,50.8155 15.5195,57.932 15.5195,58.432 16.0195,58.432 23.136,58.432 23.636,58.432 23.636,57.932 23.636,50.8155 23.636,50.3155 23.136,50.3155 16.0195,50.3155z">
+                            <GeometryDrawing.Pen>
+                                <Pen Brush="#FF000000" Thickness="1" StartLineCap="Flat" EndLineCap="Flat" LineJoin="Miter" />
+                            </GeometryDrawing.Pen>
+                        </GeometryDrawing>
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Canvas>
+        <Image Source="{StaticResource icon_question}"
+               Canvas.Left="30" Canvas.Top="27"
+               Height="49" Width="31" />
+        <TextBlock Text="Enter the playlist's name:"
+                   FontSize="16"
+                   FontWeight="Bold"
+                   Canvas.Left="98" Canvas.Top="27"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Center" />
+        <TextBox x:Name="TextboxInput"
+                 Width="200"
+                 Canvas.Left="92" Canvas.Top="71"
+                 HorizontalAlignment="Left"
+                 VerticalAlignment="Top" />
+        <Button IsCancel="True"
+                Content="_Cancel"
+                Width="45"
+                Canvas.Left="313" Canvas.Top="123"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top" />
+        <Button x:Name="ButtonSave"
+                IsDefault="True"
+                Width="45"
+                Content="_Save"
+                Click="ButtonSave_Click"
+                Canvas.Left="371" Canvas.Top="123"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top" />
+    </Canvas>
+</Window>
