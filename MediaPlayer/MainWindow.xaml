@@ -3,13 +3,17 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:converters="clr-namespace:MediaPlayer.Converters"
         xmlns:local="clr-namespace:MediaPlayerApp"
         x:Name="WindowMain"
         mc:Ignorable="d"
         Loaded="Window_Loaded"
-        Title="MainWindow" Height="600" Width="800">
+        Title="MediaPlayer"
+        MinWidth="800" MinHeight="600"
+        Width="800" Height="600">
     <Window.Resources>
         <ResourceDictionary>
+            <converters:PathToFileNameConverter x:Key="PathToFileNameConverter" />
             <DrawingImage x:Key="icon_play">
                 <DrawingImage.Drawing>
                     <DrawingGroup ClipGeometry="M0,0 V20 H20 V0 H0 Z">
@@ -37,36 +41,159 @@
                     </DrawingGroup>
                 </DrawingImage.Drawing>
             </DrawingImage>
+
+            <DrawingImage x:Key="icon_volume">
+                <DrawingImage.Drawing>
+                    <DrawingGroup ClipGeometry="M0,0 V16 H16 V0 H0 Z">
+                        <GeometryDrawing Brush="#FF000000" Geometry="F1 M16,16z M0,0z M6.3925,0.130005L3.88,3.88 0.130005,3.88 0.130005,11.38 3.88,11.38 6.3925,15.13 7.63,15.13 7.63,0.130005 6.3925,0.130005z M9.505,2.005L9.505,3.88C9.82375,3.88 10.1425,3.9175 10.4425,3.9925 12.055,4.405 13.255,5.8675 13.255,7.63 13.255,9.3925 12.0738,10.855 10.4425,11.2675 10.1425,11.3425 9.82375,11.38 9.505,11.38L9.505,13.255C9.97375,13.255,10.405,13.18,10.855,13.0863L10.9113,13.0863C13.3488,12.4675 15.13,10.255 15.13,7.63 15.13,5.005 13.3488,2.7925 10.9113,2.17375 10.48,2.06125 9.9925,2.005 9.505,2.005z M9.505,5.755L9.505,9.505C9.67375,9.505 9.8425,9.48625 9.97375,9.44875 10.78,9.2425 11.38,8.4925 11.38,7.63 11.38,6.7675 10.7988,6.0175 9.97375,5.81125 9.82375,5.77375 9.655,5.755 9.505,5.755z" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+
+            <DrawingImage x:Key="icon_volume_off">
+                <DrawingImage.Drawing>
+                    <DrawingGroup ClipGeometry="M0,0 V15 H15 V0 H0 Z">
+                        <GeometryDrawing Brush="#FFFFFFFF">
+                            <GeometryDrawing.Geometry>
+                                <RectangleGeometry RadiusX="0" RadiusY="0" Rect="0,0,15,15" />
+                            </GeometryDrawing.Geometry>
+                        </GeometryDrawing>
+                        <GeometryDrawing Brush="#FF000000" Geometry="F1 M15,15z M0,0z M6.2625,0L3.75,3.75 0,3.75 0,11.25 3.75,11.25 6.2625,15 7.5,15 7.5,0 6.2625,0z" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+
+            <DrawingImage x:Key="icon_skip_backward">
+                <DrawingImage.Drawing>
+                    <DrawingGroup ClipGeometry="M0,0 V20 H27 V0 H0 Z">
+                        <GeometryDrawing Brush="#FF000000" Geometry="F1 M27,20z M0,0z M13.3333,0L0,10 13.3333,20 13.3333,0z M13.3333,10L26.6667,20 26.6667,0 13.3333,10z" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+
+            <DrawingImage x:Key="icon_skip_forward">
+                <DrawingImage.Drawing>
+                    <DrawingGroup ClipGeometry="M0,0 V20 H27 V0 H0 Z">
+                        <GeometryDrawing Brush="#FF000000" Geometry="F1 M27,20z M0,0z M0,0L0,20 13.3333,10 0,0z M13.3333,10L13.3333,20 26.6667,10 13.3333,0 13.3333,10z" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+
+            <DrawingImage x:Key="icon_random">
+                <DrawingImage.Drawing>
+                    <DrawingGroup ClipGeometry="M0,0 V22 H22 V0 H0 Z">
+                        <GeometryDrawing Brush="#FF000000" Geometry="F1 M22,22z M0,0z M3.575,6.075L3.65167,6.16484C3.64511,6.17324,3.63826,6.18081,3.63131,6.18762L3.575,6.075z M3.575,6.075C3.55709,6.08396,3.52634,6.07687,3.5,6.06408L3.5,6.13901 3.575,6.075z M16.15,0.8L15.75,0.5 15.75,1 15.75,3.25 14.75,3.25C14.2887,3.25 13.8981,3.31588 13.5441,3.48755 13.1901,3.65914 12.8936,3.92633 12.6038,4.29506 12.6037,4.29522 12.6035,4.29538 12.6034,4.29554L9.26713,8.50731 5.64085,4.28851C5.64064,4.28827 5.64044,4.28803 5.64024,4.28779 5.35138,3.94654 5.05106,3.68352 4.6993,3.50764 4.34569,3.33084 3.95596,3.25 3.5,3.25L1,3.25 0.75,3.25 0.75,3.5 0.75,6 0.75,6.25 1,6.25 3.32603,6.25C3.3629,6.27719,3.40582,6.29856,3.44859,6.312L7.32524,10.8546 3.38039,15.75 1,15.75 0.75,15.75 0.75,16 0.75,18.5 0.75,18.75 1,18.75 3.5,18.75C3.96125,18.75 4.35187,18.6841 4.70594,18.5125 5.0597,18.3409 5.35613,18.0739 5.6458,17.7054 5.64606,17.7051 5.64632,17.7048 5.64658,17.7045L9.28282,13.1651 13.2342,17.7115C13.2345,17.7119 13.2349,17.7123 13.2352,17.7128 13.524,18.0537 13.8241,18.3166 14.1757,18.4924 14.5293,18.6692 14.919,18.75 15.375,18.75L15.75,18.75 15.75,21 15.75,21.5 16.15,21.2 21.15,17.45 21.4167,17.25 21.15,17.05 16.15,13.3 15.75,13 15.75,13.5 15.75,15.75 15.5358,15.75C15.5252,15.7427 15.5143,15.7358 15.5036,15.7294 15.4866,15.7191 15.4612,15.705 15.4311,15.6931L11.2491,10.7703 14.8701,6.25 15.75,6.25 15.75,8.5 15.75,9 16.15,8.7 21.15,4.95 21.4167,4.75 21.15,4.55 16.15,0.8z">
+                            <GeometryDrawing.Pen>
+                                <Pen Brush="#FF000000" Thickness="0.5" StartLineCap="Flat" EndLineCap="Flat" LineJoin="Miter" />
+                            </GeometryDrawing.Pen>
+                        </GeometryDrawing>
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
+
+            <DrawingImage x:Key="icon_queue">
+                <DrawingImage.Drawing>
+                    <DrawingGroup ClipGeometry="M0,0 V20 H23 V0 H0 Z">
+                        <GeometryDrawing Brush="#FF000000" Geometry="F1 M23,20z M0,0z M1.42857,0C0.628571,0 0,0.628571 0,1.42857 0,2.22857 0.628571,2.85714 1.42857,2.85714 2.22857,2.85714 2.85714,2.22857 2.85714,1.42857 2.85714,0.628571 2.22857,0 1.42857,0z M5.71428,0L5.71428,2.85714 22.8571,2.85714 22.8571,0 5.71428,0z M1.42857,5.71429C0.628571,5.71429 0,6.34286 0,7.14286 0,7.94286 0.628571,8.57143 1.42857,8.57143 2.22857,8.57143 2.85714,7.94286 2.85714,7.14286 2.85714,6.34286 2.22857,5.71429 1.42857,5.71429z M5.71428,5.71429L5.71428,8.57143 22.8571,8.57143 22.8571,5.71429 5.71428,5.71429z M1.42857,11.4286C0.628571,11.4286 0,12.0571 0,12.8571 0,13.6571 0.628571,14.2857 1.42857,14.2857 2.22857,14.2857 2.85714,13.6571 2.85714,12.8571 2.85714,12.0571 2.22857,11.4286 1.42857,11.4286z M5.71428,11.4286L5.71428,14.2857 22.8571,14.2857 22.8571,11.4286 5.71428,11.4286z M1.42857,17.1429C0.628571,17.1429 0,17.7714 0,18.5714 0,19.3714 0.628571,20 1.42857,20 2.22857,20 2.85714,19.3714 2.85714,18.5714 2.85714,17.7714 2.22857,17.1429 1.42857,17.1429z M5.71428,17.1429L5.71428,20 22.8571,20 22.8571,17.1429 5.71428,17.1429z" />
+                    </DrawingGroup>
+                </DrawingImage.Drawing>
+            </DrawingImage>
         </ResourceDictionary>
     </Window.Resources>
-    <Grid>
+
+    <Grid Background="Black">
         <Grid.RowDefinitions>
+            <RowDefinition Height="20" />
             <RowDefinition Height="*" />
             <RowDefinition Height="80" />
         </Grid.RowDefinitions>
 
-        <MediaElement x:Name="MainMediaPlayer"
-                      Source="Media/Ed Sheeran - Perfect.mp4"
-                      MediaOpened="MainMediaPlayer_MediaOpened"
-                      LoadedBehavior="Manual"
-                      d:LoadedBehavior="Pause"
-                      UnloadedBehavior="Manual"
-                      ScrubbingEnabled="True"
-                      Width="Auto" />
+        <Menu Background="Black">
+            <Menu.ItemContainerStyle>
+                <Style TargetType="MenuItem">
+                    <Setter Property="Opacity" Value="0.6" />
+                    <Setter Property="Background" Value="Black" />
+                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="BorderBrush" Value="White" />
+                </Style>
+            </Menu.ItemContainerStyle>
 
-        <StackPanel Grid.Row="1"
+            <MenuItem Header="_File">
+                <MenuItem.ItemContainerStyle>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="Background" Value="Black" />
+                        <Setter Property="Foreground" Value="LightGray" />
+                        <Setter Property="BorderThickness" Value="0.1" />
+                    </Style>
+                </MenuItem.ItemContainerStyle>
+
+                <MenuItem Header="_Open"
+                          x:Name="ButtonOpenFile"
+                          Click="ButtonOpenFile_Click" />
+                <MenuItem Header="_Open Multiple Files"
+                          x:Name="ButtonOpenFiles"
+                          Click="ButtonOpenFiles_Click" />
+                <MenuItem Header="_Open Folder"
+                          x:Name="ButtonOpenFolder"
+                          Click="ButtonOpenFolder_Click" />
+                <MenuItem Header="_Open Playlist"
+                          x:Name="ButtonOpenPlaylist" />
+                <MenuItem Header="_Exit"
+                          x:Name="ButtonExit"
+                          Click="ButtonExit_Click" />
+            </MenuItem>
+        </Menu>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition x:Name="QueueColumn"
+                                  Width="0"
+                                  d:Width="160" />
+            </Grid.ColumnDefinitions>
+
+            <MediaElement x:Name="MainMediaPlayer"
+                          MediaOpened="MainMediaPlayer_MediaOpened"
+                          LoadedBehavior="Manual"
+                          Focusable="True"
+                          d:LoadedBehavior="Pause"
+                          UnloadedBehavior="Manual"
+                          ScrubbingEnabled="True" />
+
+            <ListView x:Name="QueueMedia"
+                      Grid.Column="1"
+                      MouseDoubleClick="QueueMedia_MouseDoubleClick"
+                      Visibility="Collapsed"
+                      d:Visibility="Visible"
+                      d:ItemsSource="{d:SampleData ItemCount=5}">
+                <ListView.View>
+                    <GridView ColumnHeaderToolTip="Queue">
+                        <GridViewColumn DisplayMemberBinding="{Binding Converter={StaticResource PathToFileNameConverter}}"
+                                        Header="Name" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
+
+        <StackPanel Grid.Row="2"
+                    Background="#F5F5F5"
                     Orientation="Vertical"
-                    HorizontalAlignment="Center">
-            <StackPanel Orientation="Horizontal">
+                    HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Margin="10 10 10 0">
                 <TextBlock x:Name="TextblockCurrentTimestamp"
-                           Text="00:00:00" />
+                           Text="00:00:00"
+                           Focusable="False" />
                 <Slider x:Name="SeekBar"
+                        IsMoveToPointEnabled="True"
+                        Focusable="False"
+                        Margin="10 0 10 0"
                         Thumb.DragStarted="SeekBar_DragStarted"
                         Thumb.DragCompleted="SeekBar_DragCompleted"
                         ValueChanged="SeekBar_ValueChanged"
-                        Margin="10 0 10 0"
                         Width="600" Height="20" />
-                <TextBlock x:Name="TextblockVideoLength">
+                <TextBlock x:Name="TextblockVideoLength"
+                           Focusable="False">
                     <Run Text="{Binding StringFormat={}{0:00},
                                 ElementName=WindowMain,
                                 Path=MediaTimeSpan.Hours,
@@ -86,22 +213,68 @@
                          d:Text="49" />
                 </TextBlock>
             </StackPanel>
-            <StackPanel Orientation="Horizontal"
-                        Margin="0 20 0 0"
-                        HorizontalAlignment="Center">
-                <Button x:Name="ButtonPlay"
-                    Content="{StaticResource icon_play}"
-                    Style="{StaticResource ButtonPlayer}"
-                    Click="ButtonPlay_Click" />
-                <Button x:Name="ButtonPause"
-                    Content="{StaticResource icon_pause}"
-                    Style="{StaticResource ButtonPlayer}"
-                    Click="ButtonPause_Click" />
-                <Button x:Name="ButtonStop"
-                    Content="{StaticResource icon_stop}"
-                    Style="{StaticResource ButtonPlayer}"
-                    Click="ButtonStop_Click" />
-            </StackPanel>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal"
+                            Margin="20 0 0 0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Bottom">
+                    <Button x:Name="ButtonVolume"
+                            Focusable="False"
+                            Click="ButtonVolume_Click"
+                            Content="{StaticResource icon_volume}"
+                            Style="{StaticResource ButtonPlayer}" />
+                    <Slider x:Name="SliderVolume"
+                            Width="100" Height="20"
+                            Focusable="False"
+                            Maximum="1"
+                            ValueChanged="Slider_ValueChanged"
+                            Value="0.7" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Center">
+                    <Button x:Name="ButtonRandom"
+                            Focusable="False"
+                            Content="{StaticResource icon_random}"
+                            Style="{StaticResource ButtonPlayer}" />
+                    <Button x:Name="ButtonSkipBackward"
+                            Focusable="False"
+                            Click="ButtonSkipBackward_Click"
+                            Content="{StaticResource icon_skip_backward}"
+                            Style="{StaticResource ButtonPlayer}" />
+                    <Button x:Name="ButtonPlay"
+                            Content="{StaticResource icon_play}"
+                            Style="{StaticResource ButtonPlayer}"
+                            Click="ButtonPlay_Click" />
+                    <Button x:Name="ButtonSkipForward"
+                            Focusable="False"
+                            Click="ButtonSkipForward_Click"
+                            Content="{StaticResource icon_skip_forward}"
+                            Style="{StaticResource ButtonPlayer}" />
+                    <Button x:Name="ButtonStop"
+                            Focusable="False"
+                            Content="{StaticResource icon_stop}"
+                            Style="{StaticResource ButtonPlayer}"
+                            Click="ButtonStop_Click" />
+                </StackPanel>
+
+                <Button Grid.Column="2"
+                        x:Name="ButtonShowQueue"
+                        HorizontalAlignment="Right"
+                        Margin="0 0 20 0"
+                        Click="ButtonShowQueue_Click"
+                        Focusable="False"
+                        Content="{StaticResource icon_queue}"
+                        Style="{StaticResource ButtonPlayer}" />
+            </Grid>
         </StackPanel>
     </Grid>
 </Window>
