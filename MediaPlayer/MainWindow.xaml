@@ -167,8 +167,11 @@
                 </MenuItem.ItemContainerStyle>
 
                 <MenuItem Header="_Add"
-                          x:Name="ButtoAddToQueue"
-                          Click="ButtoAddToQueue_Click" />
+                          x:Name="ButtonAddToQueue"
+                          Click="ButtonAddToQueue_Click" />
+                <MenuItem Header="_Clear"
+                          x:Name="ButtonClearQueue"
+                          Click="ButtonClearQueue_Click" />
             </MenuItem>
 
             <MenuItem Header="_Recent"

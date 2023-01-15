@@ -77,6 +77,12 @@ namespace MediaPlayerApp
         {
             var path = Path.Combine(Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName,
                                             "Data", "savedState.txt");
+            if (!File.Exists(path))
+            {
+                File.Create(path);
+                return;
+            }
+
             var lines = File.ReadAllLines(path);
 
             var playlist = lines[0];
@@ -136,14 +142,29 @@ namespace MediaPlayerApp
 
         private void MainWindow_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (e.Key == System.Windows.Input.Key.Space)
+            switch (e.Key)
             {
-                if (IsPlaying)
-                {
-                    Pause();
-                    return;
-                }
-                Play();
+                case System.Windows.Input.Key.Space:
+                    if (IsPlaying)
+                    {
+                        Pause();
+                        return;
+                    }
+                    Play();
+                    break;
+
+                case System.Windows.Input.Key.Right:
+                    SeekBar.Value += 5;
+                    break;
+
+                case System.Windows.Input.Key.Left:
+                    if (SeekBar.Value - 5 < 0)
+                    {
+                        SeekBar.Value = 0;
+                        return;
+                    }
+                    SeekBar.Value -= 5;
+                    break;
             }
         }
 
@@ -191,6 +212,7 @@ namespace MediaPlayerApp
                 MainMediaPlayer.Source = null;
                 MainMediaPlayer.Play();
                 Stop();
+                TextblockVideoLength.Text = "00:00:00";
                 return;
             }
 
@@ -349,6 +371,25 @@ namespace MediaPlayerApp
 
         private void PlayIndex(int index)
         {
+            if (!File.Exists(_queue[index]))
+            {
+                MessageBox.Show($"Cannot open the file: {_queue[index]}, it is moved or deleted!", "Invalid file", MessageBoxButton.OK, MessageBoxImage.Error);
+                var missingFile = _queue[index];
+                _queue.Where(x => x == missingFile).ToList().ForEach(x => _queue.Remove(x));
+                PlayIndex(0);
+                List<MenuItem> removeItems = new();
+                foreach (MenuItem menuItem in MenuRecent.Items)
+                {
+                    if (menuItem.Header as string == Path.GetFileName(missingFile))
+                        removeItems.Add(menuItem);
+                }
+                foreach (MenuItem menuItem in removeItems)
+                {
+                    MenuRecent.Items.Remove(menuItem);
+                }
+                return;
+            }
+
             QueueMedia.SelectedIndex = index;
             MainMediaPlayer.Source = new Uri(_queue[index], UriKind.RelativeOrAbsolute);
             _timer = new DispatcherTimer
@@ -492,7 +533,7 @@ namespace MediaPlayerApp
             _queue.RemoveAt(index);
         }
 
-        private void ButtoAddToQueue_Click(object sender, RoutedEventArgs e)
+        private void ButtonAddToQueue_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new OpenFileDialog
             {
@@ -575,6 +616,11 @@ namespace MediaPlayerApp
             {
                 writer.WriteLine(item);
             }
+        }
+
+        private void ButtonClearQueue_Click(object sender, RoutedEventArgs e)
+        {
+            _queue.Clear();
         }
     }
 
