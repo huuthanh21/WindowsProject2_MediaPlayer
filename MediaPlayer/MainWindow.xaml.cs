@@ -1,4 +1,5 @@
-﻿using MediaPlayer.Views;
+﻿using MediaPlayer.Hotkeys;
+using MediaPlayer.Views;
 using Microsoft.Win32;
 using Ookii.Dialogs.Wpf;
 using System;
@@ -9,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 
@@ -31,8 +33,20 @@ namespace MediaPlayerApp
         {
             InitializeComponent();
 
-            MainMediaPlayer.BeginInit();
             QueueMedia.ItemsSource = _queue;
+            HotkeysManager.SetupSystemHook();
+
+            HotkeysManager.AddHotkey(ModifierKeys.Control, Key.S, () => Stop());
+            HotkeysManager.AddHotkey(ModifierKeys.Control, Key.P, () => PlayPause());
+            HotkeysManager.AddHotkey(ModifierKeys.Control, Key.OemPeriod, () => Skip(SkipOption.Forward));
+            HotkeysManager.AddHotkey(ModifierKeys.Control, Key.OemComma, () => Skip(SkipOption.Backward));
+
+            Closing += MainWindow_Closing;
+        }
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            HotkeysManager.ShutdownSystemHook();
         }
 
 #pragma warning disable 67
@@ -142,11 +156,6 @@ namespace MediaPlayerApp
         {
             switch (e.Key)
             {
-                case System.Windows.Input.Key.MediaStop:
-                    Stop();
-                    break;
-
-                case System.Windows.Input.Key.MediaPlayPause:
                 case System.Windows.Input.Key.Space:
                     if (IsPlaying)
                     {
@@ -154,6 +163,14 @@ namespace MediaPlayerApp
                         return;
                     }
                     Play();
+                    break;
+
+                case System.Windows.Input.Key.Up:
+                    SliderVolume.Value += 0.05;
+                    break;
+
+                case System.Windows.Input.Key.Down:
+                    SliderVolume.Value -= 0.05;
                     break;
 
                 case System.Windows.Input.Key.Right:
@@ -169,17 +186,19 @@ namespace MediaPlayerApp
                     SeekBar.Value -= 5;
                     break;
 
-                case System.Windows.Input.Key.MediaNextTrack:
-                    Skip(SkipOption.Forward);
-                    break;
-
-                case System.Windows.Input.Key.MediaPreviousTrack:
-                    Skip(SkipOption.Backward);
-                    break;
-
                 default:
                     break;
             }
+        }
+
+        private void PlayPause()
+        {
+            if (IsPlaying)
+            {
+                Pause();
+                return;
+            }
+            Play();
         }
 
         private void Play()
@@ -299,6 +318,12 @@ namespace MediaPlayerApp
                 {
                     _queue.Clear();
 
+                    if (string.IsNullOrWhiteSpace(File.ReadAllText(playlistItem.FullName)))
+                    {
+                        Stop();
+                        MainMediaPlayer.Source = null;
+                        return;
+                    }
                     string[] paths = File.ReadAllLines(playlistItem.FullName);
                     foreach (string path in paths)
                     {
@@ -406,7 +431,7 @@ namespace MediaPlayerApp
 
             QueueMedia.SelectedIndex = index;
             MainMediaPlayer.Source = new Uri(_queue[index], UriKind.RelativeOrAbsolute);
-            Title = $"{_queue[index]} - MediaPlayer";
+            Title = $"{Path.GetFileName(_queue[index])} - MediaPlayer";
             _timer = new DispatcherTimer
             {
                 Interval = new TimeSpan(0, 0, 0, 1, 0)
@@ -538,6 +563,31 @@ namespace MediaPlayerApp
                 {
                     writer.WriteLine(path);
                 }
+
+                var newMenuItem = new MenuItem
+                {
+                    Header = Path.GetFileNameWithoutExtension(dialog.PlaylistName)
+                };
+
+                newMenuItem.Click += (s, e) =>
+                {
+                    _queue.Clear();
+
+                    if (string.IsNullOrWhiteSpace(File.ReadAllText(playlistPath)))
+                    {
+                        Stop();
+                        MainMediaPlayer.Source = null;
+                        return;
+                    }
+                    string[] paths = File.ReadAllLines(playlistPath);
+                    foreach (string path in paths)
+                    {
+                        _queue.Add(path);
+                    }
+                    _currentPlaylist = (string)newMenuItem.Header;
+                    PlayIndex(0);
+                };
+                ButtonOpenPlaylist.Items.Add(newMenuItem);
             }
         }
 
@@ -600,7 +650,7 @@ namespace MediaPlayerApp
             // Write playlist name
             if (_currentPlaylist != null)
             {
-                writer.Write(_currentPlaylist);
+                writer.WriteLine(_currentPlaylist);
             }
             else
             {
@@ -636,6 +686,16 @@ namespace MediaPlayerApp
         private void ButtonClearQueue_Click(object sender, RoutedEventArgs e)
         {
             _queue.Clear();
+        }
+
+        private void ButtonNewPlaylist_Click(object sender, RoutedEventArgs e)
+        {
+            _currentPlaylist = null;
+            var result = MessageBox.Show("Do you want to clear current queue?", "Queue clear", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                _queue.Clear();
+            }
         }
     }
 

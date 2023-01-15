@@ -148,6 +148,9 @@
                 <MenuItem Header="_Open Folder"
                           x:Name="ButtonOpenFolder"
                           Click="ButtonOpenFolder_Click" />
+                <MenuItem Header="_New Playlist"
+                          x:Name="ButtonNewPlaylist"
+                          Click="ButtonNewPlaylist_Click" />
                 <MenuItem Header="_Open Playlist"
                           x:Name="ButtonOpenPlaylist" />
                 <MenuItem Header="_Save Playlist"
