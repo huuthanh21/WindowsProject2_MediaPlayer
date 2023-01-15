@@ -5,10 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -144,6 +142,11 @@ namespace MediaPlayerApp
         {
             switch (e.Key)
             {
+                case System.Windows.Input.Key.MediaStop:
+                    Stop();
+                    break;
+
+                case System.Windows.Input.Key.MediaPlayPause:
                 case System.Windows.Input.Key.Space:
                     if (IsPlaying)
                     {
@@ -164,6 +167,17 @@ namespace MediaPlayerApp
                         return;
                     }
                     SeekBar.Value -= 5;
+                    break;
+
+                case System.Windows.Input.Key.MediaNextTrack:
+                    Skip(SkipOption.Forward);
+                    break;
+
+                case System.Windows.Input.Key.MediaPreviousTrack:
+                    Skip(SkipOption.Backward);
+                    break;
+
+                default:
                     break;
             }
         }
@@ -392,6 +406,7 @@ namespace MediaPlayerApp
 
             QueueMedia.SelectedIndex = index;
             MainMediaPlayer.Source = new Uri(_queue[index], UriKind.RelativeOrAbsolute);
+            Title = $"{_queue[index]} - MediaPlayer";
             _timer = new DispatcherTimer
             {
                 Interval = new TimeSpan(0, 0, 0, 1, 0)
