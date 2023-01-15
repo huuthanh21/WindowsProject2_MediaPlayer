@@ -7,6 +7,7 @@
         xmlns:local="clr-namespace:MediaPlayerApp"
         x:Name="WindowMain"
         mc:Ignorable="d"
+        Closed="WindowMain_Closed"
         Loaded="Window_Loaded"
         Title="MediaPlayer"
         MinWidth="800" MinHeight="600"
@@ -169,6 +170,16 @@
                           x:Name="ButtoAddToQueue"
                           Click="ButtoAddToQueue_Click" />
             </MenuItem>
+
+            <MenuItem Header="_Recent"
+                      x:Name="MenuRecent">
+                <MenuItem.ItemContainerStyle>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="BorderThickness" Value="0.1" />
+                        <Setter Property="Foreground" Value="Black" />
+                    </Style>
+                </MenuItem.ItemContainerStyle>
+            </MenuItem>
         </Menu>
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -181,6 +192,7 @@
             <MediaElement x:Name="MainMediaPlayer"
                           MediaOpened="MainMediaPlayer_MediaOpened"
                           LoadedBehavior="Manual"
+
                           Focusable="True"
                           d:LoadedBehavior="Pause"
                           UnloadedBehavior="Manual"

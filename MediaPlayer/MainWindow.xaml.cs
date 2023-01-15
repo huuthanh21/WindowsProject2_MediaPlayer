@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -32,6 +33,7 @@ namespace MediaPlayerApp
         {
             InitializeComponent();
 
+            MainMediaPlayer.BeginInit();
             QueueMedia.ItemsSource = _queue;
         }
 
@@ -44,6 +46,8 @@ namespace MediaPlayerApp
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             LoadPlaylists();
+            LoadSavedState();
+            LoadRecentlyPlayed();
 
             this.KeyDown += MainWindow_KeyDown;
             // Update MediaState when media ended on its own
@@ -59,9 +63,6 @@ namespace MediaPlayerApp
                 }
             };
 
-            MainMediaPlayer.Play();
-            MainMediaPlayer.Stop();
-
             _timer = new DispatcherTimer
             {
                 Interval = new TimeSpan(0, 0, 0, 0, 500)
@@ -70,6 +71,67 @@ namespace MediaPlayerApp
 
             // Set default volume for media
             MainMediaPlayer.Volume = 0.7;
+        }
+
+        private void LoadSavedState()
+        {
+            var path = Path.Combine(Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName,
+                                            "Data", "savedState.txt");
+            var lines = File.ReadAllLines(path);
+
+            var playlist = lines[0];
+            var position = lines[1];
+
+            // Parse playlist
+            if (playlist != "-1")
+                _currentPlaylist = playlist;
+
+            // Add to queue
+            for (int i = 2; i < lines.Length; i++)
+            {
+                _queue.Add(lines[i]);
+            }
+
+            // Load saved position
+            if (position != "-1")
+            {
+                var tokens = position.Split(' ');
+                var index = int.Parse(tokens[0]);
+                var timespanInSeconds = double.Parse(tokens[1]);
+
+                PlayIndex(index);
+                SeekBar.Value = timespanInSeconds;
+                Pause();
+            }
+        }
+
+        private void LoadRecentlyPlayed()
+        {
+            var path = Path.Combine(Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName,
+                                            "Data", "recentlyPlayed.txt");
+            if (!File.Exists(path))
+            {
+                File.Create(path);
+                return;
+            }
+
+            // Only show last 5 files
+            var lines = File.ReadLines(path).Reverse().Take(5);
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                var name = Path.GetFileName(line);
+                var item = new MenuItem { Header = name };
+                item.Click += (s, e) =>
+                {
+                    if (!_queue.Contains(line))
+                    {
+                        _queue.Add(line);
+                    }
+                    PlayIndex(_queue.IndexOf(line));
+                };
+                MenuRecent.Items.Add(item);
+            }
         }
 
         private void MainWindow_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -173,6 +235,7 @@ namespace MediaPlayerApp
             double value = SeekBar.Value;
             var newPosition = TimeSpan.FromSeconds(value);
             MainMediaPlayer.Position = newPosition;
+            TextblockCurrentTimestamp.Text = string.Format("{0:00}:{1:00}:{2:00}", newPosition.Hours, newPosition.Minutes, newPosition.Seconds);
         }
 
         private void MainMediaPlayer_MediaOpened(object sender, RoutedEventArgs e)
@@ -287,15 +350,32 @@ namespace MediaPlayerApp
         private void PlayIndex(int index)
         {
             QueueMedia.SelectedIndex = index;
-            MainMediaPlayer.Source = new Uri(_queue[index], UriKind.Absolute);
-            Play();
-
+            MainMediaPlayer.Source = new Uri(_queue[index], UriKind.RelativeOrAbsolute);
             _timer = new DispatcherTimer
             {
                 Interval = new TimeSpan(0, 0, 0, 1, 0)
             };
 
             _timer.Tick += Timer_Tick;
+
+            Play();
+
+            var path = Path.Combine(Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName,
+                                            "Data", "recentlyPlayed.txt");
+            using StreamWriter writer = File.AppendText(path);
+            writer.WriteLine(_queue[index]);
+
+            var name = Path.GetFileName(_queue[index]);
+            var item = new MenuItem { Header = name };
+            item.Click += (s, e) =>
+            {
+                if (!_queue.Contains(_queue[index]))
+                {
+                    _queue.Add(_queue[index]);
+                }
+                PlayIndex(_queue.IndexOf(_queue[index]));
+            };
+            MenuRecent.Items.Add(item);
         }
 
         private void ButtonOpenFiles_Click(object sender, RoutedEventArgs e)
@@ -452,6 +532,49 @@ namespace MediaPlayerApp
             QueueMedia.SelectedItem = selectedItem;
 
             ButtonShuffle.Content = this.Resources["icon_random_on"] as DrawingImage;
+        }
+
+        private void WindowMain_Closed(object sender, EventArgs e)
+        {
+            var path = Path.Combine(Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName,
+                                            "Data", "savedState.txt");
+            if (QueueMedia.Items.Count == 0)
+                return;
+            using StreamWriter writer = File.CreateText(path);
+            // Write playlist name
+            if (_currentPlaylist != null)
+            {
+                writer.Write(_currentPlaylist);
+            }
+            else
+            {
+                writer.WriteLine(-1);
+            }
+
+            // Write saved position
+            if (MainMediaPlayer.Source is null)
+            {
+                writer.WriteLine(-1);
+            }
+            else
+            {
+                var source = Uri.UnescapeDataString(Path.GetFullPath(MainMediaPlayer.Source.AbsolutePath));
+                var sourceIndex = _queue.IndexOf(source);
+                if (sourceIndex < 0)
+                {
+                    writer.WriteLine(-1);
+                }
+                else
+                {
+                    writer.WriteLine($"{sourceIndex} {MainMediaPlayer.Position.TotalSeconds}");
+                }
+            }
+
+            // Write current queue
+            foreach (var item in _queue)
+            {
+                writer.WriteLine(item);
+            }
         }
     }
 
