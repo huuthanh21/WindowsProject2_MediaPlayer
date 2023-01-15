@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -20,10 +21,12 @@ namespace MediaPlayerApp
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         public bool IsPlaying { get; set; } = false;
+        private bool _isShuffleEnabled = false;
         public TimeSpan MediaTimeSpan { get; set; }
         private DispatcherTimer _timer;
         private string _currentPlaylist;
-        private readonly ObservableCollection<string> _queue = new();
+        private ObservableCollection<string> _queue = new();
+        private ObservableCollection<string> _originalQueue;
 
         public MainWindow()
         {
@@ -129,10 +132,7 @@ namespace MediaPlayerApp
                 return;
             }
 
-            var path = MainMediaPlayer.Source.AbsolutePath;
-            path = Path.GetFullPath(Uri.UnescapeDataString(path));
-
-            int index = _queue.IndexOf(path);
+            int index = QueueMedia.SelectedIndex;
             int newIndex = 0;
             if (option == SkipOption.Forward && index + 1 != _queue.Count)
             {
@@ -143,7 +143,7 @@ namespace MediaPlayerApp
                 newIndex = index - 1;
             }
 
-            PlayPath(_queue[newIndex]);
+            PlayIndex(newIndex);
         }
 
         private void Timer_Tick(object sender, EventArgs e)
@@ -179,7 +179,7 @@ namespace MediaPlayerApp
         {
             MediaTimeSpan = MainMediaPlayer.NaturalDuration.TimeSpan;
 
-            SeekBar.Maximum = MainMediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+            SeekBar.Maximum = MediaTimeSpan.TotalSeconds;
         }
 
         private void LoadPlaylists()
@@ -206,7 +206,7 @@ namespace MediaPlayerApp
                         _queue.Add(path);
                     }
                     _currentPlaylist = (string)newMenuItem.Header;
-                    PlayPath(_queue[0]);
+                    PlayIndex(0);
                 };
 
                 ButtonOpenPlaylist.Items.Add(newMenuItem);
@@ -280,15 +280,14 @@ namespace MediaPlayerApp
                 Stop();
 
                 _currentPlaylist = null;
-                string filePath = dialog.FileName;
-                PlayPath(filePath);
+                PlayIndex(0);
             }
         }
 
-        private void PlayPath(string filePath)
+        private void PlayIndex(int index)
         {
-            QueueMedia.SelectedIndex = _queue.IndexOf(filePath);
-            MainMediaPlayer.Source = new Uri(filePath, UriKind.Absolute);
+            QueueMedia.SelectedIndex = index;
+            MainMediaPlayer.Source = new Uri(_queue[index], UriKind.Absolute);
             Play();
 
             _timer = new DispatcherTimer
@@ -318,8 +317,7 @@ namespace MediaPlayerApp
                 }
 
                 _currentPlaylist = null;
-                string filePath = _queue[0];
-                PlayPath(filePath);
+                PlayIndex(0);
             }
         }
 
@@ -344,8 +342,7 @@ namespace MediaPlayerApp
                 }
 
                 _currentPlaylist = null;
-                string filePath = _queue[0];
-                PlayPath(filePath);
+                PlayIndex(0);
             }
         }
 
@@ -374,10 +371,10 @@ namespace MediaPlayerApp
 
         private void QueueMedia_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            var file = QueueMedia.SelectedItem as string;
-            if (file is not null)
+            var index = QueueMedia.SelectedIndex;
+            if (index != -1)
             {
-                PlayPath(file);
+                PlayIndex(index);
             }
         }
 
@@ -430,6 +427,54 @@ namespace MediaPlayerApp
                 {
                     _queue.Add(name);
                 }
+            }
+        }
+
+        private void ButtonShuffle_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isShuffleEnabled)
+            {
+                ButtonShuffle.Content = this.Resources["icon_random"] as DrawingImage;
+                _isShuffleEnabled = false;
+                if (_originalQueue is not null)
+                {
+                    _queue = _originalQueue;
+                    QueueMedia.ItemsSource = _queue;
+                }
+
+                return;
+            }
+
+            _isShuffleEnabled = true;
+            _originalQueue = new ObservableCollection<string>(_queue);
+            var selectedItem = QueueMedia.SelectedItem as string;
+            _queue.Shuffle();
+            QueueMedia.SelectedItem = selectedItem;
+
+            ButtonShuffle.Content = this.Resources["icon_random_on"] as DrawingImage;
+        }
+    }
+
+    public static class ThreadSafeRandom
+    {
+        [ThreadStatic] private static Random Local;
+
+        public static Random ThisThreadsRandom
+        {
+            get { return Local ??= new Random(unchecked(Environment.TickCount * 31 + Environment.CurrentManagedThreadId)); }
+        }
+    }
+
+    internal static class MyExtensions
+    {
+        public static void Shuffle<T>(this IList<T> list)
+        {
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = ThreadSafeRandom.ThisThreadsRandom.Next(n + 1);
+                (list[n], list[k]) = (list[k], list[n]);
             }
         }
     }
